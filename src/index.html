@@ -1,25 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Include head content -->
     <partial src="head.html"></partial>
-    <partial src="navbar.html"></partial>
+    
+    <!-- Link to CSS files -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <title>Your Website Title</title>
+</head>
+<body>
+    <!-- Include navigation bar -->
+    <header>
+        <partial src="navbar.html"></partial>
+    </header>
 
-    <body>
-
+    <!-- Include hero section -->
+    <section class="hero">
         <partial src="blocks/hero/hero1.html"></partial>
+    </section>
 
-        <div class="maincontent">
-            <div class="container">
-                <section id="menu">
-                    <partial src="blocks/menu/menu1.html"></partial>
-                </section>
-            </div>
+    <main class="maincontent">
+        <div class="container">
+            <!-- Include menu section -->
+            <section id="menu">
+                <partial src="blocks/menu/menu1.html"></partial>
+            </section>
         </div>
+    </main>
 
+    <!-- Include cart section -->
+    <aside class="cart">
         <partial src="blocks/cart/cart1.html"></partial>
+    </aside>
+
+    <!-- Include footer -->
+    <footer>
         <partial src="footer.html"></partial>
-        <partial src="scripts.html"></partial>
+    </footer>
 
-    </body>
-
+    <!-- Include scripts -->
+    <script src="scripts.js"></script>
+    <partial src="scripts.html"></partial>
+</body>
 </html>
