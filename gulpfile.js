@@ -6,16 +6,16 @@ const htmlmin = require('gulp-htmlmin');
 const cssmin = require('gulp-cssmin');
 const uglify = require('gulp-uglify');
 const imagemin = require('gulp-imagemin');
-//const concat = require('gulp-concat');
 const jsImport = require('gulp-js-import');
 const sourcemaps = require('gulp-sourcemaps');
 const htmlPartial = require('gulp-html-partial');
 const clean = require('gulp-clean');
+
 const isProd = process.env.NODE_ENV === 'prod';
 
 const htmlFile = [
     'src/*.html'
-]
+];
 
 function html() {
     return gulp.src(htmlFile)
@@ -44,8 +44,8 @@ function js() {
         .pipe(jsImport({
             hideConsole: true
         }))
-        //.pipe(concat('all.js'))
-        //.pipe(gulpIf(isProd, uglify()))
+        .pipe(concat('all.js')) // Uncomment if you want to concatenate all JS files
+        .pipe(gulpIf(isProd, uglify()))
         .pipe(gulp.dest('docs/js'));
 }
 
@@ -67,7 +67,6 @@ function browserSyncReload(done) {
     done();
 }
 
-
 function watchFiles() {
     gulp.watch('src/**/*.html', gulp.series(html, browserSyncReload));
     gulp.watch('src/**/*.scss', gulp.series(css, browserSyncReload));
@@ -78,13 +77,19 @@ function watchFiles() {
 }
 
 function del() {
-    return gulp.src('docs/*', {read: false})
+    return gulp.src('docs/*', { read: false })
         .pipe(clean());
 }
 
+// Individual tasks exports
 exports.css = css;
 exports.html = html;
 exports.js = js;
+exports.img = img;
 exports.del = del;
-exports.serve = gulp.parallel(html, css, js, img, watchFiles, serve);
+
+// Default task for development
 exports.default = gulp.series(del, html, css, js, img);
+
+// Task for serving and watching files
+exports.serve = gulp.parallel(html, css, js, img, watchFiles, serve);
