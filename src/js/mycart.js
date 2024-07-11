@@ -1,7 +1,3 @@
-/*
-
-*/
-
 (function ($) {
 
   "use strict";
@@ -14,10 +10,9 @@
       classCartBadge: 'my-cart-badge',
       affixCartIcon: true,
       checkoutCart: function(products) { },
-      clickOnAddToCart: function($addTocart) { },
+      clickOnAddToCart: function($addToCart) { },
       getDiscountPrice: function(products) { return null; }
     };
-
 
     var getOptions = function (customOptions) {
       var options = $.extend({}, defaultOptions);
@@ -31,28 +26,36 @@
     return objToReturn;
   }());
 
-
   var ProductManager = (function(){
     var objToReturn = {};
 
-    /*
-    PRIVATE
-    */
-    localStorage.products = localStorage.products ? localStorage.products : "";
+    var localStorageKey = 'myCartProducts';
+
+    var getAllProducts = function(){
+      try {
+        var products = JSON.parse(localStorage.getItem(localStorageKey)) || [];
+        return products;
+      } catch (e) {
+        return [];
+      }
+    }
+
+    var setAllProducts = function(products){
+      localStorage.setItem(localStorageKey, JSON.stringify(products));
+    }
+
     var getIndexOfProduct = function(id){
       var productIndex = -1;
       var products = getAllProducts();
       $.each(products, function(index, value){
         if(value.id == id){
           productIndex = index;
-          return;
+          return false;
         }
       });
       return productIndex;
     }
-    var setAllProducts = function(products){
-      localStorage.products = JSON.stringify(products);
-    }
+
     var addProduct = function(id, name, summary, price, quantity, image) {
       var products = getAllProducts();
       products.push({
@@ -66,18 +69,7 @@
       setAllProducts(products);
     }
 
-    /*
-    PUBLIC
-    */
-    var getAllProducts = function(){
-      try {
-        var products = JSON.parse(localStorage.products);
-        return products;
-      } catch (e) {
-        return [];
-      }
-    }
-    var updatePoduct = function(id, quantity) {
+    var updateProduct = function(id, quantity) {
       var productIndex = getIndexOfProduct(id);
       if(productIndex < 0){
         return false;
@@ -87,21 +79,22 @@
       setAllProducts(products);
       return true;
     }
+
     var setProduct = function(id, name, summary, price, quantity, image) {
       if(typeof id === "undefined"){
-        console.error("id required")
+        console.error("id required");
         return false;
       }
       if(typeof name === "undefined"){
-        console.error("name required")
+        console.error("name required");
         return false;
       }
       if(typeof image === "undefined"){
-        console.error("image required")
+        console.error("image required");
         return false;
       }
       if(!$.isNumeric(price)){
-        console.error("price is not a number")
+        console.error("price is not a number");
         return false;
       }
       if(!$.isNumeric(quantity)) {
@@ -110,13 +103,15 @@
       }
       summary = typeof summary === "undefined" ? "" : summary;
 
-      if(!updatePoduct(id)){
+      if(!updateProduct(id)){
         addProduct(id, name, summary, price, quantity, image);
       }
     }
-    var clearProduct = function(){
+
+    var clearProducts = function(){
       setAllProducts([]);
     }
+
     var removeProduct = function(id){
       var products = getAllProducts();
       products = $.grep(products, function(value, index) {
@@ -124,7 +119,8 @@
       });
       setAllProducts(products);
     }
-    var getTotalQuantityOfProduct = function(){
+
+    var getTotalQuantityOfProducts = function(){
       var total = 0;
       var products = getAllProducts();
       $.each(products, function(index, value){
@@ -134,17 +130,16 @@
     }
 
     objToReturn.getAllProducts = getAllProducts;
-    objToReturn.updatePoduct = updatePoduct;
+    objToReturn.updateProduct = updateProduct;
     objToReturn.setProduct = setProduct;
-    objToReturn.clearProduct = clearProduct;
+    objToReturn.clearProducts = clearProducts;
     objToReturn.removeProduct = removeProduct;
-    objToReturn.getTotalQuantityOfProduct = getTotalQuantityOfProduct;
+    objToReturn.getTotalQuantityOfProducts = getTotalQuantityOfProducts;
+
     return objToReturn;
   }());
 
-
   var loadMyCartEvent = function(userOptions){
-
     var options = OptionManager.getOptions(userOptions);
     var $cartIcon = $("." + options.classCartIcon);
     var $cartBadge = $("." + options.classCartBadge);
@@ -160,7 +155,7 @@
     var classAffixMyCartIcon = 'my-cart-icon-affix';
     var idDiscountPrice = 'my-cart-discount-price';
 
-    $cartBadge.text(ProductManager.getTotalQuantityOfProduct());
+    $cartBadge.text(ProductManager.getTotalQuantityOfProducts());
 
     if(!$("#" + idCartModal).length) {
       $('body').append(
@@ -232,16 +227,19 @@
       showGrandTotal(products);
       showDiscountPrice(products);
     }
+
     var showModal = function(){
       drawTable();
       $("#" + idCartModal).modal('show');
     }
+
     var updateCart = function(){
       $.each($("." + classProductQuantity), function(){
         var id = $(this).closest("tr").data("id");
-        ProductManager.updatePoduct(id, $(this).val());
+        ProductManager.updateProduct(id, $(this).val());
       });
     }
+
     var showGrandTotal = function(products){
       var total = 0;
       $.each(products, function(){
@@ -249,15 +247,16 @@
       });
       $("#" + idGrandTotal).text("$" + total);
     }
+
     var showDiscountPrice = function(products){
       $("#" + idDiscountPrice).text("$" + options.getDiscountPrice(products));
     }
 
     /*
-    EVENT
+    EVENT HANDLING
     */
     if(options.affixCartIcon) {
-      var cartIconBottom = $cartIcon.offset().top * 1 + $cartIcon.css("height").match(/\d+/) * 1;
+      var cartIconBottom = $cartIcon.offset().top * 1 + $cartIcon.height() * 1;
       var cartIconPosition = $cartIcon.css('position');
       $(window).scroll(function () {
         if ($(window).scrollTop() >= cartIconBottom) {
@@ -276,9 +275,9 @@
       var quantity = $(this).val();
 
       $(this).parent("td").next("." + classProductTotal).text("$" + price * quantity);
-      ProductManager.updatePoduct(id, quantity);
+      ProductManager.updateProduct(id, quantity);
 
-      $cartBadge.text(ProductManager.getTotalQuantityOfProduct());
+      $cartBadge.text(ProductManager.getTotalQuantityOfProducts());
       var products = ProductManager.getAllProducts();
       showGrandTotal(products);
       showDiscountPrice(products);
@@ -290,7 +289,7 @@
       $tr.hide(500, function(){
         ProductManager.removeProduct(id);
         drawTable();
-        $cartBadge.text(ProductManager.getTotalQuantityOfProduct());
+        $cartBadge.text(ProductManager.getTotalQuantityOfProducts());
       });
     });
 
@@ -302,8 +301,8 @@
       }
       updateCart();
       options.checkoutCart(ProductManager.getAllProducts());
-      ProductManager.clearProduct();
-      $cartBadge.text(ProductManager.getTotalQuantityOfProduct());
+      ProductManager.clearProducts();
+      $cartBadge.text(ProductManager.getTotalQuantityOfProducts());
       $("#" + idCartModal).modal("hide");
     });
 
@@ -315,19 +314,12 @@
     });
   }
 
-
   var MyCart = function (target, userOptions) {
-    /*
-    PRIVATE
-    */
     var $target = $(target);
     var options = OptionManager.getOptions(userOptions);
     var $cartIcon = $("." + options.classCartIcon);
     var $cartBadge = $("." + options.classCartBadge);
 
-    /*
-    EVENT
-    */
     $target.click(function(){
       options.clickOnAddToCart($target);
 
@@ -339,18 +331,15 @@
       var image = $target.data('image');
 
       ProductManager.setProduct(id, name, summary, price, quantity, image);
-      $cartBadge.text(ProductManager.getTotalQuantityOfProduct());
+      $cartBadge.text(ProductManager.getTotalQuantityOfProducts());
     });
-
   }
-
 
   $.fn.myCart = function (userOptions) {
     loadMyCartEvent(userOptions);
-    return $.each(this, function () {
+    return this.each(function () {
       new MyCart(this, userOptions);
     });
   }
-
 
 })(jQuery);
